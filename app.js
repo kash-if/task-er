@@ -5,6 +5,7 @@ const clearBtn = document.querySelector('.clear-tasks');
 const filter = document.querySelector('#filter');
 const taskInput = document.querySelector('#task');
 
+
 // Load All Event listeners
 loadEventListeners();
 
@@ -24,137 +25,175 @@ function loadEventListeners() {
 
 // Load data from LS function
 function loadDataFromLocalStorage() {
-  let lsContent;
-  if (localStorage.getItem('tasks') === null) {
-    lsContent = [];
+  let lsCreatedTaskList;
+  if (localStorage.getItem('tasks created') === null) {
+    lsCreatedTaskList = [];
   }
   else {
-    lsContent = JSON.parse(localStorage.getItem('tasks'));
+    lsCreatedTaskList = JSON.parse(localStorage.getItem('tasks created'));
   }
-  lsContent.forEach(
+  lsCreatedTaskList.forEach(
     function(task) {
       // Create li element 
       const li = document.createElement('li');
       // Add class name to li
       li.className = 'collection-item';
-
+      
       //Create text node and append to li
       li.appendChild(document.createTextNode(task));
-
+      
       //Create a new link element
       const link = document.createElement('a');
       // Add class name to a
       link.className = 'delete-item secondary-content';
-
+      
       // Add icon html
-      link.innerHTML = '<i class="fa fa-remove"></i>'
-
+      link.innerHTML = '<i class="fa fa-check"></i>'
+      
       // Append link element into li element
       li.appendChild(link);
-
+      
       // Append li element to ul element with class name collection
       taskList.appendChild(li);
     }
-  )
-}
+    )
+  }
 
-// addTask function
-function addTask(e) {
+  // addTask function
+  function addTask(e) {
   if(taskInput.value === '') {
     alert('Add a Task');
   }
   else {
-  // Create li element 
-  const li = document.createElement('li');
-  // Add class name to li
-  li.className = 'collection-item';
+    // Create li element 
+    const li = document.createElement('li');
+    // Add class name to li
+    li.className = 'collection-item';
 
-  //Create text node and append to li
-  li.appendChild(document.createTextNode(taskInput.value));
-
-  //Create a new link element
-  const link = document.createElement('a');
-  // Add class name to a
-  link.className = 'delete-item secondary-content';
-
-  // Add icon html
-  link.innerHTML = '<i class="fa fa-remove"></i>'
-
-  // Append link element into li element
-  li.appendChild(link);
-
-  // Append li element to ul element with class name collection
-  taskList.appendChild(li);
+    // Taking datestamp from Date function
+    const today = new Date().toLocaleDateString('en-IN', {day:'2-digit',month:'2-digit',year:'numeric'});
+    
+    //Create text node and append to li
+    li.appendChild(document.createTextNode(today + ' - ' + taskInput.value));
+    
+    //Create a new link element
+    const link = document.createElement('a');
+    // Add class name to a
+    link.className = 'delete-item secondary-content';
+    
+    // Add icon html
+    link.innerHTML = '<i class="fa fa-check"></i>'
+    
+    // Append link element into li element
+    li.appendChild(link);
+    
+    // Append li element to ul element with class name collection
+    taskList.appendChild(li);
+    
+    // Store task in Local Storage
+    storeTaskInLocalStorage(today + ' - ' + taskInput.value);
   
-  // Store task in Local Storage
-  storeTaskInLocalStorage(taskInput.value);
-  
-  //Clear task input space
+    //Clear task input space
   taskInput.value = '';
-
-  //console.log(ul);
-  }
-  e.preventDefault();
+}
+e.preventDefault();
 }
 
 // Store task in LS function
 function storeTaskInLocalStorage(task) {
-  let lsContent;
-  if (localStorage.getItem('tasks') === null) {
-    lsContent = [];
+  let lsCreatedTaskList;
+  if (localStorage.getItem('tasks created') === null) {
+    lsCreatedTaskList = [];
   }
   else {
-    lsContent = JSON.parse(localStorage.getItem('tasks'));
+    lsCreatedTaskList = JSON.parse(localStorage.getItem('tasks created'));
   }
-  lsContent.push(task);
-  localStorage.setItem('tasks', JSON.stringify(lsContent));
+  // Storing new task in LS with key 'tasks created'
+  lsCreatedTaskList.push(task);
+  localStorage.setItem('tasks created', JSON.stringify(lsCreatedTaskList));
 }
 
 // remove task function
 function removeTask(e) {
   if (e.target.parentElement.classList.contains('delete-item')) {
-
+    
     if (confirm('Are you sure?')) {
       e.target.parentElement.parentElement.remove();
       // Remove task from Local Storage too
       removeTaskFromLocalStorage(e.target.parentElement.parentElement);
     }
   }
-
+  
   e.preventDefault();
 }
 
 // Remove task from LS function
 function removeTaskFromLocalStorage(task) {
-  let lsContent;
-  if (localStorage.getItem('tasks') !== null) {
-    lsContent = JSON.parse(localStorage.getItem('tasks'));
-    lsContent.forEach(
+  let lsCreatedTaskList;
+  let lsCompletedTaskList;
+  if (localStorage.getItem('tasks created') !== null) {
+    lsCreatedTaskList = JSON.parse(localStorage.getItem('tasks created'));
+    lsCreatedTaskList.forEach(
       function(taskData, index) {
+        // Matching LS 'task created' data with HTML text content of li
         if (task.textContent === taskData) {
-          lsContent.splice(index,1);
-          localStorage.setItem('tasks', JSON.stringify(lsContent));
+          if (localStorage.getItem('tasks completed') === null) {
+            lsCompletedTaskList = [];
+          }
+          else {
+            lsCompletedTaskList = JSON.parse(localStorage.getItem('tasks completed'));
+          }
+          // Taking timestamp from Date function
+          const now = new Date().toLocaleString('en-IN', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:false});
+          // Storing completed task with datestamp in LS with key 'tasks completed'
+          lsCompletedTaskList.push(lsCreatedTaskList[index] + ' => Completed on ' + now);
+          localStorage.setItem('tasks completed', JSON.stringify(lsCompletedTaskList));
+          // Removing completed task from LS having key 'tasks created'
+          lsCreatedTaskList.splice(index,1);
+          localStorage.setItem('tasks created', JSON.stringify(lsCreatedTaskList));
         }
       }
-    )
+      )
+    }
   }
-}
-
-// clear task function
-function clearTasks() {
-  //taskList.innerHTML = '';
   
-  //Faster
-  if (confirm('Are you sure?')) {
-    while (taskList.firstChild) {
+  // clear task function
+  function clearTasks() {
+    let lsCreatedTaskList;
+    let lsDeletedTaskList;
+    if (confirm('Are you sure?')) {
+      while (taskList.firstChild) {
+        if (localStorage.getItem('tasks created') !== null) {
+          lsCreatedTaskList = JSON.parse(localStorage.getItem('tasks created'));
+          lsCreatedTaskList.forEach(
+            function (task,index) {
+              // To search index for LS items which matches HTML text content of li element
+              if (task === taskList.firstChild.textContent) {
+                if(localStorage.getItem('tasks deleted') === null) {
+                  lsDeletedTaskList = [];
+                }
+                else {
+                  lsDeletedTaskList = JSON.parse(localStorage.getItem('tasks deleted'));
+                }
+                // Taking timestamp from Date function
+                const now = new Date().toLocaleString('en-IN', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:false});
+                // Storing removed tasks with datestamp in LS with key 'tasks deleted'
+                lsDeletedTaskList.push(taskList.firstChild.textContent + ' => Deleted on ' + now);
+              localStorage.setItem('tasks deleted', JSON.stringify(lsDeletedTaskList));
+              // Removing tasks from LS with key 'tasks created'
+              lsCreatedTaskList.splice(index,1);
+              localStorage.setItem('tasks created', JSON.stringify(lsCreatedTaskList));
+            }
+          }
+        )
+      }
       taskList.removeChild(taskList.firstChild);
     }
-    // To clear local storage data
-    clearLocalStorageData();
-    filter.value = '';
-    taskInput.value = '';
   }
+  filter.value = '';
+  taskInput.value = '';
 }
+
 
 // clear LS data function
 function clearLocalStorageData() {
@@ -167,16 +206,13 @@ function filterTask(e){
   document.querySelectorAll('.collection-item').forEach(
     function (task) {
       const item = task.firstChild.textContent.toLowerCase();
-      console.log(item);
       if ( item.indexOf(filterInput) != -1) {
-      //if ( item === filterInput) {
         task.style.display = 'block';
       }
       else
       {
         task.style.display = 'none';
       }
-      //console.log(item);
     }
   )
 }
