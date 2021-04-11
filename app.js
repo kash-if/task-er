@@ -62,7 +62,7 @@ function loadDataFromLocalStorage() {
   // addTask function
   function addTask(e) {
   if(taskInput.value === '') {
-    alert('Add a Task');
+    alert('Please insert description to add a task');
   }
   else {
     // Create li element 
@@ -117,7 +117,7 @@ function storeTaskInLocalStorage(task) {
 function removeTask(e) {
   if (e.target.parentElement.classList.contains('delete-item')) {
     
-    if (confirm('Are you sure?')) {
+    if (confirm('Selected task will be moved to completed category')) {
       e.target.parentElement.parentElement.remove();
       // Remove task from Local Storage too
       removeTaskFromLocalStorage(e.target.parentElement.parentElement);
@@ -161,7 +161,7 @@ function removeTaskFromLocalStorage(task) {
   function clearTasks() {
     let lsCreatedTaskList;
     let lsDeletedTaskList;
-    if (confirm('Are you sure?')) {
+    if (confirm('All tasks in window will be moved to deleted category')) {
       while (taskList.firstChild) {
         if (localStorage.getItem('tasks created') !== null) {
           lsCreatedTaskList = JSON.parse(localStorage.getItem('tasks created'));
